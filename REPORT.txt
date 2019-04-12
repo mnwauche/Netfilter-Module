@@ -1,0 +1,64 @@
+============================================================================
+============================================================================
+REPORT
+============================================================================
+============================================================================
+
+	Our project consists of a kernel module that uses the Netfilter framework to arbitrarily 
+regulate network traffic. Our implementation is as follows:
+	
+	The user is provided with commands that allow them to separately block all incoming or outgoing
+traffic, as well as subsequently unblock them. The user also has the option of passing IP addresses
+as parameters with specific commands that will either block all traffic to and from this address,
+or unblock all traffic if the address has been previously blocked.
+
+	The module contains an array of every IP address that was singularly blocked (addresses blocked
+by the indiscriminate hook functions are not logged) along with the number of times that 
+communication with that addresses was prevented.
+	
+	Our module was mainly implemented using "hook functions." "Hooks" are various places in the
+network stack that can call registered hook functions. The two hooks that we used in our project
+were the pre-routing (incoming packages) and post-routing (outgoing packages). When a package
+reaches one of these hooks, several things are possible. 
+
+	First of all, the both hooks are guaranteed to call the IP address hook function, which is 
+registered to both hooks by default. The IP address_hook compares the given IP address to the 
+array of blocked IP addresses in order to determine whether or it is allowed to pass.
+
+	If the user has executed the commands that block all incoming or outgoing traffic. Then the 
+appropriate hook will call the "indiscriminate hook" function, which drops all packages regardless
+of content or address.
+
+	While the IP address hook cannot be unregistered unless the module is closed, users have the
+option to pass commands with parameters that unblock previously blocked IP addresses. This is 
+achieved by calling a function that removes the package and updates the array.
+
+	Likewise, the user has the option of separately disabling the indiscriminate hooks by passing
+commands that result in the calling of functions that unregister the indiscriminate hook function 
+from the corresponding.
+
+======================================
+======================================
+
+	The main challenges of this assignment were figuring out how to appropriately use the Netfilter
+framework and debugging the module. The compiler was helpful, but the most difficult bugs were the
+ones that resulted in the kernel freezing or crashing. Most of these bugs were dereferencing null pointers
+when manipulating strings. These bugs were diagnosed by adding printk
+statements to print diagnostic messages to the proc-file, recreating the conditions for the bug and
+then executing the [>$ sudo dmesg] command in order to evaluate the bugs before the kernel froze.
+Most of these bugs were the result of some sort of memory access error. 
+
+	String manipulation was also a huge issue, specifically in the context of having a consistent
+format for the representation of IP addresses as strings. The specifics of functions like strcpy
+and strcmp (null termination and what not) made it difficult to find a way to accurately compare
+IP addresses.
+
+	Stafford dealt handled most of the command reading and interpretation, the proc-file reading
+and writing, and management of the blocked IP addresses and IP address data. I dealt with
+implementing and registering the hook functions and hook helper functions. We would occasionally
+switch roles and seek each others' guidance when we reached debugging dead ends. The final debugging and
+consolidation of code was joint effort that ended up taking a bulk of both our time.
+
+	As a result, we ended up with a module that allows to arbitrarily blacklist commutation with
+certain IP addresses, as well as cease all incoming or outgoing traffic. The proc-file provides
+us with a measure of activity for the blacklisted addresses.
