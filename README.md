@@ -1,4 +1,3 @@
-# final-project-coding-taus
 Final Project by Joshua Stafford and Michael Nwauche
 =================================
 BUILDING
