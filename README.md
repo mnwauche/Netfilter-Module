@@ -1,4 +1,3 @@
-Final Project by Joshua Stafford and Michael Nwauche
 =================================
 BUILDING
 =================================
